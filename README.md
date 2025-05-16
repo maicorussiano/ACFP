@@ -1,2 +1,2 @@
 # ACFP
-Análise de Custos e Formação de Preçs
+Análise de Custos e Formação de Preços
