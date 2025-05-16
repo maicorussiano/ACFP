@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Curva de Aprendizado</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+
+    h1, h2 {
+      text-align: center;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    label {
+      font-weight: bold;
+    }
+
+    input[type="number"] {
+      width: 100%;
+      padding: 10px;
+      margin: 5px 0;
+      box-sizing: border-box;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    table, th, td {
+      border: 1px solid #ddd;
+    }
+
+    th, td {
+      text-align: center;
+      padding: 8px;
+    }
+
+    th {
+      background-color: #f4f4f4;
+    }
+
+    canvas {
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Diretoria de Contabilidade</h1>
+   <h2>Calcule a redução de custos</h2>
+  <h2>pela Curva de Aprendizado</h2>
+
+  <div class="form-group">
+    <label for="custo-inicial">Custo unitário inicial (R$):</label>
+    <input type="number" id="custo-inicial" placeholder="Exemplo: 10000000" required>
+  </div>
+
+  <div class="form-group">
+    <label for="total-unidades">Total de unidades produzidas:</label>
+    <input type="number" id="total-unidades" placeholder="Exemplo: 400" required>
+  </div>
+
+  <div class="form-group">
+    <label for="taxa-aprendizado">Taxa de aprendizado (%):</label>
+    <input type="number" id="taxa-aprendizado" placeholder="Exemplo: 95" required>
+  </div>
+
+  <button onclick="calcular()">Calcular</button>
+
+  <h2>Resultados</h2>
+  <table id="resultados">
+    <thead>
+      <tr>
+        <th>Unidades Produzidas</th>
+        <th>Custo Médio Estimado (R$)</th>
+        <th>Redução (%)</th>
+      </tr>
+    </thead>
+    <tbody>
+    </tbody>
+  </table>
+
+  <canvas id="grafico"></canvas>
+
+  <script>
+    function calcular() {
+      // Captura os valores do formulário
+      const A = parseFloat(document.getElementById('custo-inicial').value);
+      const X_total = parseInt(document.getElementById('total-unidades').value);
+      const learningRate = parseFloat(document.getElementById('taxa-aprendizado').value) / 100;
+
+      if (isNaN(A) || isNaN(X_total) || isNaN(learningRate)) {
+        alert("Por favor, preencha todos os campos corretamente.");
+        return;
+      }
+
+      // Calcula o coeficiente b
+      const b = Math.log(learningRate) / Math.log(2);
+
+      // Formatação monetária no padrão brasileiro
+      const formatarMoeda = new Intl.NumberFormat("pt-BR", {
+        style: "currency",
+        currency: "BRL"
+      });
+
+      // Tabelas e gráficos
+      const unidades = [];
+      const custos = [];
+      const reducoes = [];
+      const tabelaBody = document.querySelector("#resultados tbody");
+      tabelaBody.innerHTML = ""; // Limpa a tabela
+
+      for (let X = 1; X <= X_total; X++) {
+        const custoMedio = A * Math.pow(X, b);
+        const reducao = (1 - (custoMedio / A)) * 100;
+
+        unidades.push(X);
+        custos.push(custoMedio);
+        reducoes.push(reducao);
+
+        // Adiciona os resultados na tabela
+        const row = tabelaBody.insertRow();
+        row.insertCell(0).textContent = X;
+        row.insertCell(1).textContent = formatarMoeda.format(custoMedio);
+        row.insertCell(2).textContent = `${reducao.toFixed(1)} %`;
+      }
+
+      // Gera o gráfico
+      const ctx = document.getElementById('grafico').getContext('2d');
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: unidades,
+          datasets: [{
+            label: 'Custo Médio Estimado (R$)',
+            data: custos,
+            borderColor: '#1E3A8A',
+            backgroundColor: 'rgba(30, 58, 138, 0.2)',
+            borderWidth: 2,
+            pointRadius: 3,
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              position: 'top',
+            },
+            title: {
+              display: true,
+              text: 'Curva de Aprendizado'
+            }
+          },
+          scales: {
+            x: {
+              title: {
+                display: true,
+                text: 'Unidades Produzidas'
+              }
+            },
+            y: {
+              title: {
+                display: true,
+                text: 'Custo Médio Estimado (R$)'
+              },
+              ticks: {
+                callback: function(value) {
+                  return formatarMoeda.format(value);
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+  </script>
+</body>
+</html>
